@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RAW GAME</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: #0b0d10;
+        color: #c8ced8;
+        font:
+          15px/1.45 "Segoe UI",
+          system-ui,
+          sans-serif;
+      }
+      #brand {
+        text-align: center;
+        padding: 8px 10px;
+        background: #0e1116;
+        border-bottom: 1px solid #1e2732;
+      }
+      #brand img {
+        width: 28px;
+        height: 28px;
+        margin-right: 8px;
+        border-radius: 50%;
+        vertical-align: middle;
+      }
+      #brand b {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: #e6ebf2;
+        vertical-align: middle;
+      }
+
+      /* running: a spinner under the brand. jb.js sets body.done / body.fail / body.log. */
+      #spin {
+        position: fixed;
+        top: calc(50% + 20px);
+        left: 50%;
+        width: 46px;
+        height: 46px;
+        margin: -23px 0 0 -23px;
+        border: 4px solid #1e2732;
+        border-top-color: #7fd0a0;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      #msg {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        text-align: center;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+        display: none;
+      }
+      #wrap {
+        padding: 0;
+      }
+      #state,
+      #out {
+        display: none;
+      }
+
+      body.done #spin {
+        display: none;
+      }
+      body.fail #spin {
+        display: none;
+      }
+      body.fail #msg {
+        display: block;
+      }
+      body.done #msg {
+        display: block;
+        color: #7fd0a0;
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+
+      /* ?log=1 -- the full step log, styled like the landing. */
+      body.log #spin,
+      body.log #msg {
+        display: none;
+      }
+      body.log #wrap {
+        padding: 14px 18px;
+      }
+      body.log #state {
+        display: block;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 8px;
+      }
+      body.log #out {
+        display: block;
+        white-space: pre-wrap;
+        font:
+          12px/1.45 Consolas,
+          monospace;
+        background: #11151b;
+        border: 1px solid #1e2732;
+        border-radius: 5px;
+        padding: 10px 12px;
+        height: calc(100vh - 141px);
+        overflow-y: auto;
+      }
+      .ok {
+        color: #7fd0a0;
+      }
+      .bad {
+        color: #d08a7f;
+      }
+      .warn {
+        color: #d8c07f;
+      }
+      .safe {
+        color: #7fd0a0;
+      }
+      .danger {
+        color: #d08a7f;
+      }
+      code {
+        color: #9fb3d0;
+      }
+    
+      #ramBox {
+        position: fixed;
+
+        top: 8px;
+        left: 8px;
+        z-index: 9999;
+
+        padding: 6px 9px;
+
+        color: #7fd0a0;
+        background: rgba(0, 0, 0, 0.78);
+
+        border:
+          1px solid #1e2732;
+
+        border-radius: 4px;
+
+        font-family:
+          Consolas,
+          monospace;
+
+        font-size: 11px;
+
+        max-width: 92vw;
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="ramBox">RAM: checking...</div>
+    <div id="brand">
+      <img
+        src="data:image/jpeg;base64,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"
+        alt=""
+        width="28"
+        height="28"
+      /><b>Goldhen</b>
+    </div>
+    <div id="spin"></div>
+    <div id="msg">Restart your console</div>
+    <div id="wrap">
+      <div id="state"></div>
+      <div id="out"></div>
+    </div>
+    <script type="module">
+      import "./jb.js?v=31";
+    </script>
+  </body>
+</html>
